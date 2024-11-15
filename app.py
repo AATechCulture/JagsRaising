@@ -11,7 +11,16 @@ def employee():
         name = data.get("name", "Guest")
         return jsonify(message=f"Hello {name}"), 200
     else:
-        return jsonify(message="Employee GET request received"), 200
+        data_1 = [
+            {"country": "USA", "value": 25},
+            {"country": "UK", "value": 30},
+        ]
+        data_2 = [
+            {"country": "India", "value": 15},
+            {"country": "Turkey", "value": 20},
+        ]
+        data = {"data_1": data_1, "data_2": data_2}
+        return jsonify(data), 200
 
 
 # Endpoint for customer
@@ -22,6 +31,7 @@ def customer():
         name = data.get("name", "Guest")
         return jsonify(message=f"Hello Customer {name}"), 200
     else:
+
         return jsonify(message="Customer GET request received"), 200
 
 
