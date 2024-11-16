@@ -1,9 +1,18 @@
 from flask import Flask, request, jsonify
 import sqlite3
 from flask_cors import CORS
+from ai import dash
 
 app = Flask(__name__)
 CORS(app)
+
+
+# endpoing for dashboard
+@app.route("/dashboard", methods=["GET"])
+def dashboard():
+    data_dashboard = dash()
+    print(data_dashboard)
+    return jsonify(data_dashboard), 200
 
 
 # Endpoint for employee
@@ -154,6 +163,8 @@ def add_medical():
         # Extract fields from the JSON payload
         first_name = data.get("firstName")
         last_name = data.get("lastName")
+        hospital_name = data.get("hospitalName")
+        disease = data.get("disease")
         phone = data.get("phone")
         address = data.get("address")
         email = data.get("email")
@@ -166,6 +177,8 @@ def add_medical():
         required_fields = [
             first_name,
             last_name,
+            hospital_name,
+            disease,
             phone,
             address,
             email,
@@ -183,13 +196,15 @@ def add_medical():
         conn.execute(
             """
             INSERT INTO Medical (
-                firstName, lastName, phone, address, email, 
+                firstName, lastName, hospitalName, disease, phone, address, email, 
                 situation, duration, dueDate, amount
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
                 first_name,
                 last_name,
+                hospital_name,
+                disease,
                 phone,
                 address,
                 email,
@@ -218,6 +233,8 @@ def add_studentf():
         # Extract fields from the JSON payload
         first_name = data.get("firstName")
         last_name = data.get("lastName")
+        grade = data.get("grade")
+        school_name = data.get("schoolName")
         phone = data.get("phone")
         address = data.get("address")
         email = data.get("email")
@@ -230,6 +247,8 @@ def add_studentf():
         required_fields = [
             first_name,
             last_name,
+            grade,
+            school_name,
             phone,
             address,
             email,
@@ -247,13 +266,15 @@ def add_studentf():
         conn.execute(
             """
             INSERT INTO StudentTuitionForm (
-                firstName, lastName, phone, address, email, 
+                firstName, lastName, grade, schoolName, phone, address, email, 
                 situation, duration, dueDate, amount
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
                 first_name,
                 last_name,
+                grade,
+                school_name,
                 phone,
                 address,
                 email,
@@ -288,7 +309,6 @@ def add_food():
         situation = data.get("situation")
         duration = data.get("duration")
         due_date = data.get("dueDate")
-        amount = data.get("amount")
 
         # Validate required fields
         required_fields = [
@@ -300,7 +320,6 @@ def add_food():
             situation,
             duration,
             due_date,
-            amount,
         ]
 
         if any(field is None for field in required_fields):
@@ -312,7 +331,7 @@ def add_food():
             """
             INSERT INTO FoodForm (
                 firstName, lastName, phone, address, email, 
-                situation, duration, dueDate, amount
+                situation, duration, dueDate
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
@@ -324,7 +343,6 @@ def add_food():
                 situation,
                 duration,
                 due_date,
-                amount,
             ),
         )
         conn.commit()

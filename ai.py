@@ -1,77 +1,212 @@
 import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
 import sqlite3
+from datetime import datetime, timedelta
 
 
-conn = sqlite3.connect("CostOfLiving.db")
+def dash():
 
-# Create a cursor object
-cursor = conn.cursor()
+    conn = sqlite3.connect("CostOfLiving.db")
 
-cursor.execute("SELECT * FROM ShelterForm")
-data = cursor.fetchall()
+    # Create a cursor object
+    cursor = conn.cursor()
 
-# Step 1: Load and prepare the data
-# file_path = "MOCK_DATA.json"  # Replace with your file path
-# data = pd.read_json(file_path)
+    cursor.execute("SELECT * FROM ShelterForm")
+    data = cursor.fetchall()
 
-data = pd.DataFrame(
-    data,
-    columns=[
-        "firstName",
-        "lastName",
-        "phone",
-        "address",
-        "email",
-        "situation",
-        "duration",
-        "dueDate",
-        "amount",
-    ],
-)
+    cursor.execute("SELECT * FROM StudentTuitionForm")
+    student_tution_form = cursor.fetchall()
 
-# Convert dueDate to datetime and aggregate amounts by date
-data["dueDate"] = pd.to_datetime(data["dueDate"], format="%m/%d/%Y")
-data["amount"] = pd.to_numeric(data["amount"])
+    cursor.execute("SELECT * FROM Medical")
+    medical_form = cursor.fetchall()
 
-aggregated_data = data.groupby("dueDate")["amount"].sum().reset_index()
+    cursor.execute("SELECT * FROM FoodForm")
+    food_form = cursor.fetchall()
 
+    # Close the connection
+    conn.close()
 
-# Sort by date for time series analysis
-aggregated_data = aggregated_data.sort_values("dueDate")
+    # Convert the data to a DataFrame
+    data = pd.DataFrame(
+        data,
+        columns=[
+            "firstName",
+            "lastName",
+            "phone",
+            "address",
+            "email",
+            "situation",
+            "duration",
+            "dueDate",
+            "amount",
+        ],
+    )
 
-# Step 2: Fit the ARIMA model
-arima_model = ARIMA(aggregated_data["amount"], order=(5, 1, 0))
-arima_result = arima_model.fit()
+    student_tution_form = pd.DataFrame(
+        student_tution_form,
+        columns=[
+            "firstName",
+            "lastName",
+            "phone",
+            "address",
+            "email",
+            "situation",
+            "duration",
+            "dueDate",
+            "amount",
+            "grade",
+            "schoolName",
+        ],
+    )
 
-# Step 3: Forecast the next 90 days (3 months)
-forecast = arima_result.get_forecast(steps=90)
-forecast_values = forecast.predicted_mean
+    medical_form = pd.DataFrame(
+        medical_form,
+        columns=[
+            "firstName",
+            "lastName",
+            "phone",
+            "address",
+            "email",
+            "situation",
+            "duration",
+            "dueDate",
+            "amount",
+            "hospitalName",
+            "disease",
+        ],
+    )
 
-# Separate predictions for 7 days, 3 weeks (21 days), and 3 months (90 days)
-forecast_7_days = forecast_values[:7]
-forecast_3_weeks = forecast_values[:21]
-forecast_3_months = forecast_values
+    food_form = pd.DataFrame(
+        food_form,
+        columns=[
+            "firstName",
+            "lastName",
+            "phone",
+            "address",
+            "email",
+            "situation",
+            "duration",
+            "dueDate",
+        ],
+    )
 
+    # Convert dueDate to datetime and aggregate amounts by date
+    data["dueDate"] = pd.to_datetime(data["dueDate"], format="%m/%d/%Y")
+    data["amount"] = pd.to_numeric(data["amount"])
 
-def create_l(list):
-    chunk_size = len(list) // 3
+    aggregated_data = data.groupby("dueDate")["amount"].sum().reset_index()
 
-    # Split the series into 3 parts
-    parts = [list[i * chunk_size : (i + 1) * chunk_size] for i in range(3)]
+    # Sort by date for time series analysis
+    aggregated_data = aggregated_data.sort_values("dueDate")
 
-    # Sum each part
-    sums = [part.sum() for part in parts]
+    # Step 2: Fit the ARIMA model
+    arima_model = ARIMA(aggregated_data["amount"], order=(5, 1, 0))
+    arima_result = arima_model.fit()
 
-    # Increase sums partly according to their place
-    sums = [round(sum * (1 + i * 0.1)) for i, sum in enumerate(sums)]
+    # Step 3: Forecast the next 90 days (3 months)
+    forecast = arima_result.get_forecast(steps=90)
+    forecast_values = forecast.predicted_mean
 
-    return sums
+    # Separate predictions for 7 days, 3 weeks (21 days), and 3 months (90 days)
+    forecast_7_days = forecast_values[:7]
+    forecast_3_weeks = forecast_values[:21]
+    forecast_3_months = forecast_values
 
+    def create_l(list):
+        chunk_size = len(list) // 3
 
-print(forecast_7_days.round().to_list())
-print(create_l(forecast_3_months))
-print(create_l(forecast_3_weeks))
+        # Split the series into 3 parts
+        parts = [list[i * chunk_size : (i + 1) * chunk_size] for i in range(3)]
 
+        # Sum each part
+        sums = [part.sum() for part in parts]
 
-##
+        # Increase sums partly according to their place
+        sums = [round(sum * (1 + i * 0.1)) for i, sum in enumerate(sums)]
+
+        return sums
+
+    # Start date (today's date)
+    start_date = datetime.today()
+
+    # Function to create date keys for next 7 days
+    def create_next_7_days(data_x, start_date):
+        return {
+            (start_date + timedelta(days=i)).strftime("%Y-%m-%d"): value
+            for i, value in enumerate(data_x)
+        }
+
+    # Function to create date range keys for weekly data
+    def create_weekly_keys(data_x, start_date):
+        return {
+            f"{(start_date + timedelta(weeks=i)).strftime('%Y-%m-%d')} - "
+            f"{(start_date + timedelta(weeks=i+1) - timedelta(days=1)).strftime('%Y-%m-%d')}": value
+            for i, value in enumerate(data_x)
+        }
+
+    # Function to create date range keys for monthly data
+    def create_monthly_keys(data_x, start_date):
+        return {
+            f"{(start_date + timedelta(days=30*i)).strftime('%Y-%m-%d')} - "
+            f"{(start_date + timedelta(days=30*(i+1)) - timedelta(days=1)).strftime('%Y-%m-%d')}": value
+            for i, value in enumerate(data_x)
+        }
+
+    # Generating the key-value mappings
+    daily_mapping = create_next_7_days(forecast_7_days.round().to_list(), start_date)
+    weekly_mapping = create_weekly_keys(create_l(forecast_3_weeks), start_date)
+    monthly_mapping = create_monthly_keys(create_l(forecast_3_months), start_date)
+
+    # Displaying results
+    print("Next 7 Days:", daily_mapping)
+    print("\nNext 3 Weeks:", weekly_mapping)
+    print("\nNext 3 Months:", monthly_mapping)
+
+    medical_aggregated_data = (
+        medical_form[["hospitalName", "email"]]
+        .groupby("hospitalName")
+        .count()
+        .reset_index()
+    )
+    medical_aggregated_data2 = (
+        medical_form[["disease", "email"]].groupby("disease").count().reset_index()
+    )
+
+    student_tution_form_aggregated_data = (
+        student_tution_form[["schoolName", "email"]]
+        .groupby("schoolName")
+        .count()
+        .reset_index()
+    )
+    student_tution_form_aggregated_data2 = (
+        student_tution_form[["grade", "email"]].groupby("grade").count().reset_index()
+    )
+
+    student_tution_form_aggregated_data = dict(
+        zip(
+            student_tution_form_aggregated_data["schoolName"],
+            student_tution_form_aggregated_data["email"],
+        )
+    )
+    student_tution_form_aggregated_data2 = dict(
+        zip(
+            student_tution_form_aggregated_data2["grade"],
+            student_tution_form_aggregated_data2["email"],
+        )
+    )
+    medical_aggregated_data = dict(
+        zip(medical_aggregated_data["hospitalName"], medical_aggregated_data["email"])
+    )
+    medical_aggregated_data2 = dict(
+        zip(medical_aggregated_data2["disease"], medical_aggregated_data2["email"])
+    )
+
+    return (
+        student_tution_form_aggregated_data,
+        student_tution_form_aggregated_data2,
+        medical_aggregated_data,
+        medical_aggregated_data2,
+        daily_mapping,
+        weekly_mapping,
+        monthly_mapping,
+    )
