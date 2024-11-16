@@ -198,7 +198,7 @@ def add_medical():
             INSERT INTO Medical (
                 firstName, lastName, hospitalName, disease, phone, address, email, 
                 situation, duration, dueDate, amount
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
                 first_name,
@@ -268,7 +268,7 @@ def add_studentf():
             INSERT INTO StudentTuitionForm (
                 firstName, lastName, grade, schoolName, phone, address, email, 
                 situation, duration, dueDate, amount
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
                 first_name,
@@ -332,7 +332,7 @@ def add_food():
             INSERT INTO FoodForm (
                 firstName, lastName, phone, address, email, 
                 situation, duration, dueDate
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
                 first_name,
