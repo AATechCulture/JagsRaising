@@ -157,10 +157,15 @@ def dash():
     weekly_mapping = create_weekly_keys(create_l(forecast_3_weeks), start_date)
     monthly_mapping = create_monthly_keys(create_l(forecast_3_months), start_date)
 
-    # Displaying results
-    print("Next 7 Days:", daily_mapping)
-    print("\nNext 3 Weeks:", weekly_mapping)
-    print("\nNext 3 Months:", monthly_mapping)
+    daily_mapping = [
+        {"country": key, "value": value} for key, value in daily_mapping.items()
+    ]
+    weekly_mapping = [
+        {"country": key, "value": value} for key, value in weekly_mapping.items()
+    ]
+    monthly_mapping = [
+        {"country": key, "value": value} for key, value in monthly_mapping.items()
+    ]
 
     medical_aggregated_data = (
         medical_form[["hospitalName", "email"]]
@@ -182,24 +187,22 @@ def dash():
         student_tution_form[["grade", "email"]].groupby("grade").count().reset_index()
     )
 
-    student_tution_form_aggregated_data = dict(
-        zip(
-            student_tution_form_aggregated_data["schoolName"],
-            student_tution_form_aggregated_data["email"],
-        )
-    )
-    student_tution_form_aggregated_data2 = dict(
-        zip(
-            student_tution_form_aggregated_data2["grade"],
-            student_tution_form_aggregated_data2["email"],
-        )
-    )
-    medical_aggregated_data = dict(
-        zip(medical_aggregated_data["hospitalName"], medical_aggregated_data["email"])
-    )
-    medical_aggregated_data2 = dict(
-        zip(medical_aggregated_data2["disease"], medical_aggregated_data2["email"])
-    )
+    student_tution_form_aggregated_data = [
+        {"country": row["schoolName"], "value": row["email"]}
+        for _, row in student_tution_form_aggregated_data.iterrows()
+    ]
+    student_tution_form_aggregated_data2 = [
+        {"country": row["grade"], "value": row["email"]}
+        for _, row in student_tution_form_aggregated_data2.iterrows()
+    ]
+    medical_aggregated_data = [
+        {"country": row["hospitalName"], "value": row["email"]}
+        for _, row in medical_aggregated_data.iterrows()
+    ]
+    medical_aggregated_data2 = [
+        {"country": row["disease"], "value": row["email"]}
+        for _, row in medical_aggregated_data2.iterrows()
+    ]
 
     return (
         student_tution_form_aggregated_data,
@@ -210,3 +213,7 @@ def dash():
         weekly_mapping,
         monthly_mapping,
     )
+
+
+if __name__ == "__main__":
+    dash()
