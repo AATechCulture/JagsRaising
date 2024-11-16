@@ -2,3 +2,4 @@ Flask==3.0.3
 pandas==1.4.2
 statsmodels==0.14.4
 Flask-Cors==3.0.10
+numpy==1.26.0
