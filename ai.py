@@ -54,3 +54,6 @@ def create_l(list):
 print(forecast_7_days.round().to_list())
 print(create_l(forecast_3_months))
 print(create_l(forecast_3_weeks))
+
+
+##
