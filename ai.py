@@ -1,7 +1,15 @@
 import pandas as pd
-from datetime import datetime
 from statsmodels.tsa.arima.model import ARIMA
+import sqlite3
 
+
+conn = sqlite3.connect("CostOfLiving.db")
+
+# Create a cursor object
+cursor = conn.cursor()
+
+cursor.execute("SELECT * FROM ShelterForm")
+rows = cursor.fetchall()
 
 # Step 1: Load and prepare the data
 file_path = "MOCK_DATA.json"  # Replace with your file path
