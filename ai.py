@@ -9,21 +9,39 @@ conn = sqlite3.connect("CostOfLiving.db")
 cursor = conn.cursor()
 
 cursor.execute("SELECT * FROM ShelterForm")
-rows = cursor.fetchall()
+data = cursor.fetchall()
 
 # Step 1: Load and prepare the data
-file_path = "MOCK_DATA.json"  # Replace with your file path
-data = pd.read_json(file_path)
+# file_path = "MOCK_DATA.json"  # Replace with your file path
+# data = pd.read_json(file_path)
 
-# Convert DueDate to datetime and aggregate amounts by date
-data["DueDate"] = pd.to_datetime(data["DueDate"], format="%m/%d/%Y")
-aggregated_data = data.groupby("DueDate")["Amount"].sum().reset_index()
+data = pd.DataFrame(
+    data,
+    columns=[
+        "firstName",
+        "lastName",
+        "phone",
+        "address",
+        "email",
+        "situation",
+        "duration",
+        "dueDate",
+        "amount",
+    ],
+)
+
+# Convert dueDate to datetime and aggregate amounts by date
+data["dueDate"] = pd.to_datetime(data["dueDate"], format="%m/%d/%Y")
+data["amount"] = pd.to_numeric(data["amount"])
+
+aggregated_data = data.groupby("dueDate")["amount"].sum().reset_index()
+
 
 # Sort by date for time series analysis
-aggregated_data = aggregated_data.sort_values("DueDate")
+aggregated_data = aggregated_data.sort_values("dueDate")
 
 # Step 2: Fit the ARIMA model
-arima_model = ARIMA(aggregated_data["Amount"], order=(5, 1, 0))
+arima_model = ARIMA(aggregated_data["amount"], order=(5, 1, 0))
 arima_result = arima_model.fit()
 
 # Step 3: Forecast the next 90 days (3 months)
